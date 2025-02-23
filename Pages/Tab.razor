@@ -1,0 +1,95 @@
+@page "/tab"
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+@using MudBlazor
+
+<MudContainer>
+    <MudText Typo="Typo.h4" Align="Align.Center">Expense Tracker</MudText>
+
+    <MudTextField @bind-Value="newExpenseName" Label="Expense Name" FullWidth Margin="Margin.Dense" />
+    <MudTextField @bind-Value="newExpensePrice" Label="Expense Price (EUR)" Type="number" FullWidth Margin="Margin.Dense"
+                  Min="0.01" Step="0.01" />
+    <MudDatePicker @bind-Date="newExpenseDate" Label="Date" FullWidth Margin="Margin.Dense" />
+
+    <MudButton Color="Color.Primary" OnClick="AddExpense" Variant="Variant.Filled" FullWidth>
+        Add Expense
+    </MudButton>
+
+    <MudButton Color="Color.Error" OnClick="ClearExpenses" Variant="Variant.Outlined" FullWidth>
+        Clear Expenses
+    </MudButton>
+
+    <MudTable Items="expenses" Dense="true" Bordered="true" Hover="true" Striped="true">
+        <HeaderContent>
+            <MudTh>Name</MudTh>
+            <MudTh>Price (EUR)</MudTh>
+            <MudTh>Date</MudTh>
+            <MudTh></MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Name">
+                <MudTextField @bind-Value="context.Name" />
+            </MudTd>
+            <MudTd DataLabel="Price (EUR)">
+                <MudTextField @bind-Value="context.Price" Type="number" Step="0.01" Min="0.01"
+                              Format="C2" Label="Price" />
+            </MudTd>
+            <MudTd DataLabel="Date">
+                <MudDatePicker @bind-Date="context.Date" />
+            </MudTd>
+            <MudTd>
+                <MudButton Color="Color.Error" OnClick="@(() => RemoveExpense(context))" Icon="Icons.Material.Filled.Delete">Delete Expense</MudButton>
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+</MudContainer>
+
+@code {
+    private string newExpenseName = "";
+    private decimal newExpensePrice = 0;
+    private DateTime? newExpenseDate = DateTime.Now;
+
+    private List<Expense> expenses = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        expenses = await LocalStorage.GetItemAsync<List<Expense>>("expenses") ?? new List<Expense>();
+    }
+
+    private async Task AddExpense()
+    {
+        if (!string.IsNullOrWhiteSpace(newExpenseName) && newExpensePrice > 0 && newExpenseDate.HasValue)
+        {
+            var expense = new Expense
+            {
+                Name = newExpenseName,
+                Price = newExpensePrice,
+                Date = newExpenseDate.Value
+            };
+            expenses.Add(expense);
+
+            await LocalStorage.SetItemAsync("expenses", expenses);
+            newExpenseName = "";
+            newExpensePrice = 0;
+            newExpenseDate = DateTime.Now;
+        }
+    }
+
+    private async Task ClearExpenses()
+    {
+        await LocalStorage.RemoveItemAsync("expenses");
+        expenses.Clear();
+    }
+
+    private async Task RemoveExpense(Expense expense)
+    {
+        expenses.Remove(expense);
+        await LocalStorage.SetItemAsync("expenses", expenses);  // Ensure local storage is updated after removal
+    }
+
+    public class Expense
+    {
+        public string Name { get; set; }
+        public decimal Price { get; set; }
+        public DateTime? Date { get; set; }
+    }
+}
