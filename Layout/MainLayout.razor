@@ -1,28 +1,64 @@
 ﻿@inherits LayoutComponentBase
 
-<MudThemeProvider />
-<MudPopoverProvider />
-<MudDialogProvider />
-<MudSnackbarProvider />
+<MudThemeProvider @bind-IsDarkMode="@_isDarkMode" Theme="_tabBuddyTheme"/>
+<MudPopoverProvider/>
+<MudDialogProvider/>
+<MudSnackbarProvider/>
 
 <MudLayout>
     <MudAppBar>
-        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
-        My Application
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start"
+                       OnClick="@((e) => DrawerToggle())"/>
     </MudAppBar>
     <MudDrawer @bind-Open="@_drawerOpen">
+        Splitsy
         <NavMenu/>
+        <MudSwitch @bind-Value="_isDarkMode" Color="Color.Primary" Class="ma-4" T="bool"
+                   Label="Toggle Light/Dark Mode"/>
     </MudDrawer>
     <MudMainContent>
-        @Body
+        @* <MudContainer MaxWidth="MaxWidth.Medium"> *@
+            @Body
+        @* </MudContainer> *@
     </MudMainContent>
 </MudLayout>
 
 @code {
     bool _drawerOpen = true;
+    private bool _isDarkMode = true;
 
     void DrawerToggle()
     {
         _drawerOpen = !_drawerOpen;
     }
+
+    MudTheme _tabBuddyTheme = new MudTheme()
+    {
+        PaletteLight = new PaletteLight()
+        {
+            Primary = Colors.Blue.Default,
+            Secondary = Colors.Green.Accent4,
+            AppbarBackground = Colors.Red.Default,
+        },
+
+        PaletteDark = new PaletteDark()
+        {
+            Primary = Colors.Blue.Lighten1
+        },
+
+        LayoutProperties = new LayoutProperties()
+        {
+            DrawerWidthLeft = "260px",
+            DrawerWidthRight = "300px"
+        },
+
+        Typography = new Typography()
+        {
+            Default = new DefaultTypography()
+            {
+                FontFamily = new[] { "JetBrains Mono", "Arial", "Helvetica", "sans-serif" }
+            }
+        }
+    };
+
 }
